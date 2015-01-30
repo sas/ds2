@@ -9,9 +9,9 @@
 ##
 
 set(CMAKE_SYSTEM_NAME Linux)
-set(ARCH_NAME ARM)
+set(ARCH_NAME X86)
 
-set(CMAKE_C_COMPILER /tmp/android-ndk-toolchain/arm-linux-androideabi-4.8/bin/arm-linux-androideabi-gcc)
-set(CMAKE_CXX_COMPILER /tmp/android-ndk-toolchain/arm-linux-androideabi-4.8/bin/arm-linux-androideabi-g++)
+set(CMAKE_C_COMPILER /tmp/android-ndk-toolchain/x86-4.8/bin/i686-linux-android-gcc)
+set(CMAKE_CXX_COMPILER /tmp/android-ndk-toolchain/x86-4.8/bin/i686-linux-android-g++)
 
 set(STATIC 1)

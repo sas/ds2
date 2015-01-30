@@ -5,6 +5,7 @@ env:
   - TARGET="Linux-X86"
   - TARGET="Linux-X86_64"
   - TARGET="Android-ARM"
+  - TARGET="Android-X86"
 
 before_install:
   - sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
@@ -19,7 +20,8 @@ install:
   # be able to use the lldb python library without us building it).
   - if [ "$TARGET" = "Linux-X86_64" ]; then sudo apt-get install -y cmake swig lldb-3.3; fi
   # Extraction of the Android NDK is very verbose, drop the per-file messages.
-  - if [ "$TARGET" = "Android-ARM" ]; then ./Support/Scripts/prepare-android-toolchain.sh | grep -v "^Extracting "; fi
+  - if [ "$TARGET" = "Android-ARM" ]; then ./Support/Scripts/prepare-android-toolchain.sh "arm-linux-androideabi-4.8" | grep -v "^Extracting "; fi
+  - if [ "$TARGET" = "Android-X86" ]; then ./Support/Scripts/prepare-android-toolchain.sh "x86-4.8" | grep -v "^Extracting "; fi
 
 before_script:
   - mkdir -p build && cd build
