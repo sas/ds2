@@ -55,4 +55,9 @@ static inline pid_t wait4(pid_t pid, int *stat_loc, int options,
 }
 #endif
 
+#if defined(__i386__) && !defined(__ANDROID__)
+#include <sys/user.h>
+typedef struct user_fxsr_struct user_fpxregs_struct;
+#endif
+
 #endif // !__DebugServer2_Host_Linux_ExtraSyscalls_h
