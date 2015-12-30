@@ -37,3 +37,13 @@ branches:
 before_install: ./Support/Testing/Travis/before-install.py
 install:        ./Support/Testing/Travis/install.py
 script:         ./Support/Testing/Travis/script.sh
+
+deploy:
+  provider: releases
+  api_key:
+    secure: LR7zDL86nvuPrPsSODU3d54fbuAXX5T8NH1ckh9X1lDFapZmu0HeXN3XE/py1i1YYHgZa5s8BZaMX2znOfasPoKUDS+p0iq9WDrgi4TYBMv3vFNOt/D028xgjGQjKBthU3Pj2d2hzD6el0CjX6BDgPPajocShp4sHzwl4mZBSkA=
+  file: ds2
+  skip_cleanup: true
+  on:
+    repo: sas/ds2
+    tags: true
