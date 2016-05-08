@@ -44,14 +44,18 @@ ErrorCode Thread::terminate() {
 }
 
 ErrorCode Thread::suspend() {
+  DS2ASSERT(_state != kInvalid && _state != kTerminated);
+
   DWORD result = SuspendThread(_handle);
   if (result == (DWORD)-1) {
     return Platform::TranslateError();
   }
 
-  _state = kStopped;
-  _stopInfo.event = StopInfo::kEventStop;
-  _stopInfo.reason = StopInfo::kReasonNone;
+  if (_state == kRunning) {
+    _state = kStopped;
+    _stopInfo.event = StopInfo::kEventStop;
+    _stopInfo.reason = StopInfo::kReasonNone;
+  }
   return kSuccess;
 }
 
@@ -80,17 +84,19 @@ ErrorCode Thread::resume(int signal, Address const &address) {
 
   case kStopped:
   case kStepped: {
-    if (_stopInfo.event == StopInfo::kEventStop &&
-        _stopInfo.reason == StopInfo::kReasonNone) {
-      DWORD result = ResumeThread(_handle);
-      if (result == (DWORD)-1) {
-        return Platform::TranslateError();
-      }
-    } else {
-      BOOL result = ContinueDebugEvent(_process->pid(), _tid, DBG_CONTINUE);
+    auto &pendingEvent = process()->pendingEvent();
+    if (pendingEvent.valid) {
+      BOOL result =
+          ContinueDebugEvent(_process->pid(), pendingEvent.tid, DBG_CONTINUE);
       if (!result) {
         return Platform::TranslateError();
       }
+      pendingEvent.reset();
+    }
+
+    DWORD result = ResumeThread(_handle);
+    if (result == (DWORD)-1) {
+      return Platform::TranslateError();
     }
 
     _state = kRunning;

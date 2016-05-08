@@ -30,7 +30,7 @@ namespace ds2 {
 namespace Target {
 namespace Windows {
 
-Process::Process() : super(), _handle(nullptr) {}
+Process::Process() : super(), _handle(nullptr), _pendingEvent() {}
 
 Process::~Process() { CloseHandle(_handle); }
 
@@ -144,8 +144,17 @@ ErrorCode Process::wait() {
 
     DEBUG_EVENT de;
     BOOL result = WaitForDebugEvent(&de, INFINITE);
-    if (!result)
+    if (!result) {
       return Platform::TranslateError();
+    }
+
+    // We just returned from `WaitForDebugEvent()` and we are suspending the
+    // thread separately from its debug event so we can do per-thread
+    // single-stepping later on if we need to.
+    // e.g.: a thread hits a breakpoint, and we want to single-step an
+    // instruction in a different thread; we need to ContinueDebugEvent the
+    // thread that just stopped, so we can WaitForDebugEvent again after
+    // resuming the thread we want to single-step.
 
     DS2LOG(Debug, "debug event from inferior, event=%s",
            Stringify::DebugEvent(de.dwDebugEventCode));
@@ -163,6 +172,7 @@ ErrorCode Process::wait() {
       _currentThread =
           new Thread(this, GetThreadId(de.u.CreateProcessInfo.hThread),
                      de.u.CreateProcessInfo.hThread);
+      _pendingEvent.set(_currentThread);
       return kSuccess;
 
     case EXIT_PROCESS_DEBUG_EVENT: {
@@ -170,6 +180,7 @@ ErrorCode Process::wait() {
       // should only be one thread left at this point.
       DS2ASSERT(_threads.size() == 1);
       _currentThread = findThread(_threads, de.dwThreadId);
+      _pendingEvent.set(_currentThread);
 
       _terminated = true;
       _currentThread->_state = Thread::kTerminated;
@@ -212,6 +223,7 @@ ErrorCode Process::wait() {
     case OUTPUT_DEBUG_STRING_EVENT: {
       _currentThread = findThread(_threads, de.dwThreadId);
       _currentThread->updateState(de);
+      _pendingEvent.set(_currentThread);
 
       ErrorCode error = suspend();
       if (error != kSuccess) {

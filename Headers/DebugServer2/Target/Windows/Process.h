@@ -13,6 +13,8 @@
 
 #include "DebugServer2/Host/ProcessSpawner.h"
 #include "DebugServer2/Target/ProcessBase.h"
+#include "DebugServer2/Target/Thread.h"
+#include "DebugServer2/Utils/Log.h"
 
 namespace ds2 {
 namespace Target {
@@ -21,6 +23,31 @@ namespace Windows {
 class Process : public ds2::Target::ProcessBase {
 protected:
   HANDLE _handle;
+
+public:
+  struct PendingEvent {
+  private:
+    bool _valid;
+    ThreadId _tid;
+
+    PendingEvent() : _valid(false), _tid(0) {}
+
+  public:
+    inline void set(Thread *thread) {
+      DS2ASSERT(!_valid);
+      _valid = true;
+      _tid = thread->tid();
+      thread->suspend();
+    }
+
+    inline void reset() {
+      DS2ASSERT(_valid);
+      _valid = false;
+      _tid = 0;
+    }
+  } _pendingEvent;
+
+  PendingEvent &pendingEvent() { return _pendingEvent; }
 
 protected:
   Process();
