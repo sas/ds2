@@ -443,7 +443,7 @@ int main(int argc, char **argv) {
     host = gDefaultHost;
   }
 
-  DS2LOG(Debug, "ds2 launched with arguments: %s", full_args.c_str());
+  DS2LOG(Debug, "ds2 launched with arguments: %s (Test)", full_args.c_str());
 
   switch (mode) {
   case kRunModeNormal:
